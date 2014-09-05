@@ -29,8 +29,8 @@ import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE_X;
 
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -42,7 +42,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.utils.iterators.RdfStream;
 import org.springframework.context.annotation.Scope;
@@ -61,8 +61,8 @@ import com.codahale.metrics.annotation.Timed;
 @Path("/{path: .*}/fcr:fixity")
 public class FedoraFixity extends AbstractResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     /**
      * Get the results of a fixity check for a path

@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -36,7 +36,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
 import org.fcrepo.http.commons.AbstractResource;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.serialization.FedoraObjectSerializer;
 import org.fcrepo.serialization.SerializerUtil;
 import org.slf4j.Logger;
@@ -57,8 +57,8 @@ public class FedoraExport extends AbstractResource {
     @Autowired
     protected SerializerUtil serializers;
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     private static final Logger LOGGER = getLogger(FedoraExport.class);
 

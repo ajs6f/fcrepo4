@@ -26,8 +26,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -37,7 +37,7 @@ import org.apache.commons.io.IOUtils;
 import org.fcrepo.http.api.FedoraNodes;
 import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.kernel.FedoraResource;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Scope;
@@ -58,8 +58,8 @@ import com.hp.hpl.jena.rdf.model.Model;
 @Path("/fcr:properties")
 public class FedoraRepositoriesProperties extends AbstractResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     private static final Logger LOGGER =
         getLogger(FedoraRepositoriesProperties.class);

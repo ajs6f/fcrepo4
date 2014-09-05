@@ -16,16 +16,16 @@
 package org.fcrepo.http.api;
 
 import static com.hp.hpl.jena.rdf.model.ModelFactory.createDefaultModel;
-import static com.sun.jersey.api.Responses.notAcceptable;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.notAcceptable;
 import static javax.ws.rs.core.Response.ok;
 import static javax.ws.rs.core.Response.status;
-import static javax.ws.rs.core.Response.Status;
 import static org.apache.jena.riot.RDFLanguages.contentTypeToLang;
 import static org.apache.jena.riot.WebContent.contentTypeSPARQLUpdate;
+import static org.apache.jena.riot.WebContent.ctSPARQLUpdate;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
@@ -35,15 +35,16 @@ import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -60,18 +61,22 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-
-import com.hp.hpl.jena.rdf.model.Model;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Variant;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.riot.Lang;
 import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
 import org.fcrepo.kernel.utils.ContentDigest;
+import org.glassfish.jersey.media.multipart.BodyPart;
+import org.glassfish.jersey.media.multipart.BodyPartEntity;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
+import org.glassfish.jersey.media.multipart.MultiPart;
 import org.modeshape.jcr.ExecutionContext;
 import org.modeshape.jcr.value.PathFactory;
 import org.slf4j.Logger;
@@ -79,10 +84,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.annotation.Timed;
-import com.sun.jersey.core.header.ContentDisposition;
-import com.sun.jersey.multipart.BodyPart;
-import com.sun.jersey.multipart.BodyPartEntity;
-import com.sun.jersey.multipart.MultiPart;
+import com.hp.hpl.jena.rdf.model.Model;
 
 /**
  * Controller for manipulating binary streams in larger batches
@@ -99,10 +101,14 @@ public class FedoraBatch extends AbstractResource {
     public static final String INLINE = "inline";
     public static final String DELETE = "delete";
     public static final String FORM_DATA_DELETE_PART_NAME = "delete[]";
-    @InjectedSession
-    protected Session session;
+    
+    @Inject
+    protected InjectableSession session;
 
     private static final Logger LOGGER = getLogger(FedoraBatch.class);
+
+    private List<Variant> acceptableVariants = Arrays.asList(new Variant(new MediaType(ctSPARQLUpdate.getType(),
+            ctSPARQLUpdate.getSubType()), null, null, null));
 
     /**
      * Apply batch modifications relative to the node.
@@ -251,7 +257,7 @@ public class FedoraBatch extends AbstractResource {
 
                             resource.replaceProperties(subjects, inputModel);
                         } else {
-                            throw new WebApplicationException(notAcceptable()
+                            throw new WebApplicationException(notAcceptable(acceptableVariants)
                                 .entity("Invalid Content Type " + contentTypeString).build());
                         }
 

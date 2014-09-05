@@ -16,7 +16,7 @@
 package org.fcrepo.http.commons.api.rdf;
 
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.sun.jersey.api.uri.UriBuilderImpl;
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.fcrepo.kernel.TxSession;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.junit.Before;
@@ -91,13 +91,13 @@ public abstract class GraphSubjectsTest {
     protected static UriInfo getUriInfoImpl(final String path) {
         // UriInfo ui = mock(UriInfo.class,withSettings().verboseLogging());
         final UriInfo ui = mock(UriInfo.class);
-        final UriBuilder ub = new UriBuilderImpl();
+        final UriBuilder ub = new JerseyUriBuilder();
         ub.scheme("http");
         ub.host("localhost");
         ub.port(8080);
         ub.path("/fcrepo");
 
-        final UriBuilder rb = new UriBuilderImpl();
+        final UriBuilder rb = new JerseyUriBuilder();
         rb.scheme("http");
         rb.host("localhost");
         rb.port(8080);

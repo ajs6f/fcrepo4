@@ -15,13 +15,13 @@
  */
 package org.fcrepo.http.api.repository;
 
+import javax.inject.Inject;
+import javax.ws.rs.Path;
+
 import org.fcrepo.http.api.FedoraExport;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import javax.jcr.Session;
-import javax.ws.rs.Path;
 
 /**
  * This stub is a hack to mount the functionality of FedoraExport at the root of
@@ -36,7 +36,7 @@ import javax.ws.rs.Path;
 @Path("/fcr:export")
 public class FedoraRepositoryExport extends FedoraExport {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
 }

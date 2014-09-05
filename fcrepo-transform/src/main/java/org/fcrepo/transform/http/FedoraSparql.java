@@ -15,31 +15,49 @@
  */
 package org.fcrepo.transform.http;
 
-import com.codahale.metrics.annotation.Timed;
-import com.google.common.base.Strings;
-import com.hp.hpl.jena.query.ResultSet;
-import org.apache.commons.io.IOUtils;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFLanguages;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
-import org.fcrepo.http.api.FedoraNodes;
-import org.fcrepo.http.commons.AbstractResource;
-import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.responses.ViewHelpers;
-import org.fcrepo.http.commons.session.InjectedSession;
-import org.fcrepo.kernel.rdf.IdentifierTranslator;
-import org.fcrepo.kernel.impl.rdf.impl.NamespaceRdfContext;
-import org.fcrepo.kernel.impl.utils.LogoutCallback;
-import org.fcrepo.transform.http.responses.ResultSetStreamingOutput;
-import org.fcrepo.transform.sparql.JQLConverter;
-import org.fcrepo.transform.sparql.SparqlServiceDescription;
-import org.slf4j.Logger;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import static com.google.common.util.concurrent.Futures.addCallback;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+import static javax.ws.rs.core.MediaType.TEXT_HTML;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
+import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.status;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static org.apache.jena.riot.WebContent.contentTypeHTMLForm;
+import static org.apache.jena.riot.WebContent.contentTypeN3;
+import static org.apache.jena.riot.WebContent.contentTypeNTriples;
+import static org.apache.jena.riot.WebContent.contentTypeRDFXML;
+import static org.apache.jena.riot.WebContent.contentTypeResultsBIO;
+import static org.apache.jena.riot.WebContent.contentTypeResultsJSON;
+import static org.apache.jena.riot.WebContent.contentTypeResultsXML;
+import static org.apache.jena.riot.WebContent.contentTypeSSE;
+import static org.apache.jena.riot.WebContent.contentTypeTextCSV;
+import static org.apache.jena.riot.WebContent.contentTypeTextPlain;
+import static org.apache.jena.riot.WebContent.contentTypeTextTSV;
+import static org.apache.jena.riot.WebContent.contentTypeTurtle;
+import static org.fcrepo.http.api.responses.BaseHtmlProvider.templateFilenameExtension;
+import static org.fcrepo.http.api.responses.BaseHtmlProvider.templatesLocation;
+import static org.fcrepo.http.api.responses.BaseHtmlProvider.velocityPropertiesLocation;
+import static org.fcrepo.http.commons.domain.RDFMediaType.JSON_LD;
+import static org.fcrepo.http.commons.domain.RDFMediaType.N3;
+import static org.fcrepo.http.commons.domain.RDFMediaType.N3_ALT2;
+import static org.fcrepo.http.commons.domain.RDFMediaType.NTRIPLES;
+import static org.fcrepo.http.commons.domain.RDFMediaType.POSSIBLE_RDF_VARIANTS;
+import static org.fcrepo.http.commons.domain.RDFMediaType.POSSIBLE_SPARQL_RDF_VARIANTS;
+import static org.fcrepo.http.commons.domain.RDFMediaType.RDF_XML;
+import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE;
+import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE_X;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.net.URL;
+import java.util.Properties;
+
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -53,46 +71,30 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Variant;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.URL;
-import java.util.Properties;
+import org.apache.commons.io.IOUtils;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFLanguages;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.fcrepo.http.api.FedoraNodes;
+import org.fcrepo.http.commons.AbstractResource;
+import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
+import org.fcrepo.http.commons.responses.ViewHelpers;
+import org.fcrepo.http.commons.session.InjectableSession;
+import org.fcrepo.kernel.impl.rdf.impl.NamespaceRdfContext;
+import org.fcrepo.kernel.impl.utils.LogoutCallback;
+import org.fcrepo.kernel.rdf.IdentifierTranslator;
+import org.fcrepo.transform.http.responses.ResultSetStreamingOutput;
+import org.fcrepo.transform.sparql.JQLConverter;
+import org.fcrepo.transform.sparql.SparqlServiceDescription;
+import org.slf4j.Logger;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import static com.google.common.util.concurrent.Futures.addCallback;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML;
-import static javax.ws.rs.core.MediaType.TEXT_HTML;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static org.apache.jena.riot.WebContent.contentTypeN3;
-import static org.apache.jena.riot.WebContent.contentTypeNTriples;
-import static org.apache.jena.riot.WebContent.contentTypeRDFXML;
-import static org.apache.jena.riot.WebContent.contentTypeResultsBIO;
-import static org.apache.jena.riot.WebContent.contentTypeResultsJSON;
-import static org.apache.jena.riot.WebContent.contentTypeResultsXML;
-import static org.apache.jena.riot.WebContent.contentTypeHTMLForm;
-import static org.apache.jena.riot.WebContent.contentTypeSSE;
-import static org.apache.jena.riot.WebContent.contentTypeTextCSV;
-import static org.apache.jena.riot.WebContent.contentTypeTextPlain;
-import static org.apache.jena.riot.WebContent.contentTypeTextTSV;
-import static org.apache.jena.riot.WebContent.contentTypeTurtle;
-import static org.fcrepo.http.commons.domain.RDFMediaType.JSON_LD;
-import static org.fcrepo.http.commons.domain.RDFMediaType.N3;
-import static org.fcrepo.http.commons.domain.RDFMediaType.N3_ALT2;
-import static org.fcrepo.http.commons.domain.RDFMediaType.NTRIPLES;
-import static org.fcrepo.http.commons.domain.RDFMediaType.POSSIBLE_SPARQL_RDF_VARIANTS;
-import static org.fcrepo.http.commons.domain.RDFMediaType.POSSIBLE_RDF_VARIANTS;
-import static org.fcrepo.http.api.responses.BaseHtmlProvider.templateFilenameExtension;
-import static org.fcrepo.http.api.responses.BaseHtmlProvider.templatesLocation;
-import static org.fcrepo.http.api.responses.BaseHtmlProvider.velocityPropertiesLocation;
-import static org.fcrepo.http.commons.domain.RDFMediaType.RDF_XML;
-import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE;
-import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE_X;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.codahale.metrics.annotation.Timed;
+import com.google.common.base.Strings;
+import com.hp.hpl.jena.query.ResultSet;
 
 /**
  * Primitive SPARQL JAX-RS endpoint
@@ -105,8 +107,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Path("/fcr:sparql")
 public class FedoraSparql extends AbstractResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     private static final Logger LOGGER = getLogger(FedoraSparql.class);
 

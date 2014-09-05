@@ -15,26 +15,27 @@
  */
 package org.fcrepo.auth.integration;
 
-import org.fcrepo.http.commons.AbstractResource;
-import org.fcrepo.http.commons.session.InjectedSession;
-import org.modeshape.jcr.api.JcrTools;
-import org.slf4j.Logger;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import static org.slf4j.LoggerFactory.getLogger;
 
+import java.net.URI;
+import java.util.List;
+
+import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.List;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import org.fcrepo.http.commons.AbstractResource;
+import org.fcrepo.http.commons.session.InjectableSession;
+import org.modeshape.jcr.api.JcrTools;
+import org.slf4j.Logger;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  * This class acts as the REST Resource endpoint against which integration tests are executed.
@@ -50,8 +51,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Path("/{path: .*}")
 public class RootTestResource extends AbstractResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     private static final Logger LOGGER = getLogger(RootTestResource.class);
 

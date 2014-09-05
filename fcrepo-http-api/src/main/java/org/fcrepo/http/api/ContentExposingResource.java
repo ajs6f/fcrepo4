@@ -15,14 +15,13 @@
  */
 package org.fcrepo.http.api;
 
-import com.sun.jersey.core.header.ContentDisposition;
+import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.status;
+import static org.fcrepo.kernel.RdfLexicon.NON_RDF_SOURCE;
 
-import org.fcrepo.http.commons.AbstractResource;
-import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.domain.Range;
-import org.fcrepo.http.commons.responses.RangeRequestInputStream;
-import org.fcrepo.kernel.Datastream;
-import org.fcrepo.kernel.impl.services.TransactionServiceImpl;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
 
 import javax.jcr.Binary;
 import javax.jcr.RepositoryException;
@@ -34,13 +33,13 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
-import static org.fcrepo.kernel.RdfLexicon.NON_RDF_SOURCE;
+import org.fcrepo.http.commons.AbstractResource;
+import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
+import org.fcrepo.http.commons.domain.Range;
+import org.fcrepo.http.commons.responses.RangeRequestInputStream;
+import org.fcrepo.kernel.Datastream;
+import org.fcrepo.kernel.impl.services.TransactionServiceImpl;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
 
 /**
  * An abstract class that sits between AbstractResource and any resource that

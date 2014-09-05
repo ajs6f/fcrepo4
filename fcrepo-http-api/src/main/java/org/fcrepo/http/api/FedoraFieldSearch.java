@@ -41,8 +41,8 @@ import static org.fcrepo.kernel.RdfLexicon.SEARCH_PAGE;
 import static org.fcrepo.kernel.RdfLexicon.SEARCH_TERMS;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -57,7 +57,7 @@ import javax.ws.rs.core.UriInfo;
 import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
 import org.fcrepo.http.commons.responses.HtmlTemplate;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.jcr.FedoraJcrTypes;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Scope;
@@ -84,8 +84,9 @@ public class FedoraFieldSearch extends AbstractResource implements
     public static final String OFFSET_PARAM = "offset";
     public static final String QUERY_PARAM = "q";
     public static final String LIMIT_PARAM = "limit";
-    @InjectedSession
-    protected Session session;
+    
+    @Inject
+    protected InjectableSession session;
 
     private static final Logger LOGGER = getLogger(FedoraFieldSearch.class);
 

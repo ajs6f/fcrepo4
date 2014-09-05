@@ -37,8 +37,8 @@ import static org.fcrepo.kernel.RdfLexicon.HAS_MEMBER_OF_RESULT;
 import java.util.Collection;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -51,7 +51,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.utils.iterators.RdfStream;
 import org.springframework.context.annotation.Scope;
@@ -73,8 +73,8 @@ import com.hp.hpl.jena.graph.Triple;
 @Path("/{path: .*}/fcr:identifier")
 public class FedoraIdentifiers extends AbstractResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     /**
      * Mint identifiers (without creating the objects)

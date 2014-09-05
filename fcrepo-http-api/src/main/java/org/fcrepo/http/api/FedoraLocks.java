@@ -15,37 +15,6 @@
  */
 package org.fcrepo.http.api;
 
-import com.codahale.metrics.annotation.Timed;
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.graph.Triple;
-import org.fcrepo.http.commons.AbstractResource;
-import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.responses.HtmlTemplate;
-import org.fcrepo.http.commons.session.InjectedSession;
-import org.fcrepo.jcr.FedoraJcrTypes;
-import org.fcrepo.kernel.Lock;
-import org.fcrepo.kernel.utils.iterators.RdfStream;
-import org.slf4j.Logger;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-
 import static com.hp.hpl.jena.graph.NodeFactory.createLiteral;
 import static com.hp.hpl.jena.graph.NodeFactory.createURI;
 import static com.hp.hpl.jena.graph.Triple.create;
@@ -67,6 +36,39 @@ import static org.fcrepo.kernel.RdfLexicon.IS_DEEP;
 import static org.fcrepo.kernel.RdfLexicon.LOCKS;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.PathSegment;
+import javax.ws.rs.core.Response;
+
+import org.fcrepo.http.commons.AbstractResource;
+import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
+import org.fcrepo.http.commons.responses.HtmlTemplate;
+import org.fcrepo.http.commons.session.InjectableSession;
+import org.fcrepo.jcr.FedoraJcrTypes;
+import org.fcrepo.kernel.Lock;
+import org.fcrepo.kernel.utils.iterators.RdfStream;
+import org.slf4j.Logger;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import com.codahale.metrics.annotation.Timed;
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
+import com.hp.hpl.jena.graph.Triple;
+
 /**
  * @author Mike Durbin
  */
@@ -77,8 +79,8 @@ public class FedoraLocks extends AbstractResource implements FedoraJcrTypes {
 
     private static final Logger LOGGER = getLogger(FedoraLocks.class);
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     /**
      * Gets a description of the lock resource.

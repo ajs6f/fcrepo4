@@ -33,8 +33,8 @@ import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE_X;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -46,7 +46,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.http.commons.responses.HtmlTemplate;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.kernel.utils.iterators.RdfStream;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -62,8 +62,8 @@ import com.codahale.metrics.annotation.Timed;
 @Path("/fcr:nodetypes")
 public class FedoraRepositoryNodeTypes extends AbstractResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     /**
      * Retrieve all node types as RDF

@@ -25,8 +25,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.security.Principal;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -36,7 +36,7 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 
 import org.fcrepo.http.commons.AbstractResource;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.kernel.Transaction;
 import org.fcrepo.kernel.TxSession;
 import org.fcrepo.kernel.services.TransactionService;
@@ -61,8 +61,8 @@ public class FedoraTransactions extends AbstractResource {
     @Autowired
     private TransactionService txService;
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     /**
      * Create a new transaction resource and add it to the registry

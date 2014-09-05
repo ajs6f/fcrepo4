@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -57,7 +58,7 @@ import javax.ws.rs.core.PathSegment;
 import org.fcrepo.http.api.FedoraNodes;
 import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.transform.TransformationFactory;
 import org.slf4j.Logger;
@@ -79,8 +80,8 @@ import com.hp.hpl.jena.query.Dataset;
 @Path("/{path: .*}/fcr:transform")
 public class FedoraTransform extends AbstractResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     private static final Logger LOGGER = getLogger(FedoraTransform.class);
 

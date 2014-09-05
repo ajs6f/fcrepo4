@@ -15,11 +15,11 @@
  */
 package org.fcrepo.http.commons.domain;
 
-import com.sun.jersey.core.header.reader.HttpHeaderReader;
-
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.glassfish.jersey.message.internal.HttpHeaderReader;
 
 /**
  * Parse a single prefer tag, value and any optional parameters

@@ -40,7 +40,7 @@ import org.junit.Test;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.NodeFactory;
 import com.hp.hpl.jena.update.GraphStore;
-import com.sun.jersey.core.header.ContentDisposition;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
 
 /**
  * <p>FedoraContentIT class.</p>

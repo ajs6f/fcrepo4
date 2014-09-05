@@ -15,11 +15,11 @@
  */
 package org.fcrepo.http.api.repository;
 
-import javax.jcr.Session;
+import javax.inject.Inject;
 import javax.ws.rs.Path;
 
 import org.fcrepo.http.api.FedoraIdentifiers;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +36,6 @@ import org.springframework.stereotype.Component;
 @Path("/fcr:identifier")
 public class FedoraRepositoryIdentifiers extends FedoraIdentifiers {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 }

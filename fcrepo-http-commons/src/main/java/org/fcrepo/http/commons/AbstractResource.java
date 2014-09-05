@@ -40,7 +40,6 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import com.sun.jersey.core.header.ContentDisposition;
 import org.fcrepo.http.commons.api.rdf.HttpTripleUtil;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraResource;
@@ -54,6 +53,7 @@ import org.fcrepo.kernel.services.ObjectService;
 import org.fcrepo.kernel.services.RepositoryService;
 import org.fcrepo.kernel.services.VersionService;
 import org.fcrepo.kernel.utils.iterators.RdfStream;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.modeshape.jcr.api.JcrTools;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

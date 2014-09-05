@@ -32,10 +32,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.io.IOException;
@@ -59,7 +59,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 
-import com.hp.hpl.jena.rdf.model.Model;
 import org.apache.commons.io.IOUtils;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.impl.FedoraResourceImpl;
@@ -67,16 +66,16 @@ import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.services.DatastreamService;
 import org.fcrepo.kernel.services.NodeService;
 import org.fcrepo.kernel.services.VersionService;
-
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.MultiPart;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import com.google.common.collect.ImmutableMap;
-import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.multipart.MultiPart;
-import com.sun.jersey.multipart.file.StreamDataBodyPart;
+import com.hp.hpl.jena.rdf.model.Model;
 
 /**
  * <p>FedoraBatchTest class.</p>

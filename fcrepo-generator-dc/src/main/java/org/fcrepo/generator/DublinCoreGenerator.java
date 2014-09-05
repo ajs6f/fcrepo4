@@ -22,9 +22,9 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.inject.Inject;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -32,10 +32,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
 
-import org.fcrepo.http.commons.AbstractResource;
-import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.generator.dublincore.DCGenerator;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.AbstractResource;
+import org.fcrepo.http.commons.session.InjectableSession;
+import org.fcrepo.kernel.FedoraResource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -53,8 +53,8 @@ public class DublinCoreGenerator extends AbstractResource {
     @Resource
     List<DCGenerator> dcgenerators;
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     /**
      * Get Dublin Core XML for a node

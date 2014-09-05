@@ -19,9 +19,6 @@ import static com.hp.hpl.jena.graph.NodeFactory.createURI;
 import static com.hp.hpl.jena.graph.Triple.create;
 import static com.hp.hpl.jena.rdf.model.ModelFactory.createDefaultModel;
 import static com.hp.hpl.jena.rdf.model.ResourceFactory.createResource;
-import static com.sun.jersey.api.Responses.clientError;
-import static com.sun.jersey.api.Responses.conflict;
-import static com.sun.jersey.api.Responses.notFound;
 import static javax.ws.rs.core.MediaType.APPLICATION_XHTML_XML;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import static javax.ws.rs.core.MediaType.TEXT_HTML;
@@ -29,7 +26,10 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.apache.commons.lang.ArrayUtils.contains;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -64,11 +64,12 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.jcr.ItemExistsException;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.observation.ObservationManager;
+import javax.jcr.Workspace;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -91,39 +92,38 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.hp.hpl.jena.rdf.model.Literal;
-import com.hp.hpl.jena.rdf.model.ResourceFactory;
-import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.rdf.model.StmtIterator;
-import com.sun.jersey.multipart.FormDataParam;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.jena.riot.Lang;
 import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
+import org.fcrepo.http.commons.domain.COPY;
 import org.fcrepo.http.commons.domain.ContentLocation;
 import org.fcrepo.http.commons.domain.MOVE;
 import org.fcrepo.http.commons.domain.PATCH;
-import org.fcrepo.http.commons.domain.COPY;
 import org.fcrepo.http.commons.domain.Prefer;
 import org.fcrepo.http.commons.domain.PreferTag;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
-import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.rdf.HierarchyRdfContextOptions;
+import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.utils.iterators.RdfStream;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.common.annotations.VisibleForTesting;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
 
 /**
  * CRUD operations on Fedora Nodes
@@ -135,8 +135,8 @@ import com.hp.hpl.jena.rdf.model.Model;
 @Path("/{path: .*}")
 public class FedoraNodes extends AbstractResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     private static final Logger LOGGER = getLogger(FedoraNodes.class);
     private static boolean baseURLSet = false;
@@ -153,7 +153,7 @@ public class FedoraNodes extends AbstractResource {
             try {
                 final URI baseURL = uriInfo.getBaseUri();
                 LOGGER.debug("FedoraNodes.init(): baseURL = " + baseURL.toString());
-                final ObservationManager obs = session.getWorkspace().getObservationManager();
+                final ObservationManager obs = ((Workspace) session.getWorkspace()).getObservationManager();
                 final String json = "{\"baseURL\":\"" + baseURL.toString() + "\"}";
                 obs.setUserData(json);
                 LOGGER.trace("FedoraNodes.init(): done");
@@ -564,7 +564,7 @@ public class FedoraNodes extends AbstractResource {
         final FedoraResource object = nodeService.getObject(session, path);
 
         if (object.getModels().contains(FEDORA_DATASTREAM)) {
-            throw new WebApplicationException(conflict().entity("Object cannot have child nodes").build());
+            throw new WebApplicationException(status(CONFLICT).entity("Object cannot have child nodes").build());
         }
 
         LOGGER.debug("Attempting to ingest with path: {}", newObjectPath);
@@ -653,7 +653,7 @@ public class FedoraNodes extends AbstractResource {
                 result = datastreamService.createDatastream(session, path);
                 break;
             default:
-                throw new WebApplicationException(clientError().entity(
+                throw new WebApplicationException(status(BAD_REQUEST).entity(
                         "Unknown object type " + objectType).build());
         }
         return result;
@@ -661,13 +661,13 @@ public class FedoraNodes extends AbstractResource {
 
     private void assertPathMissing(final String path) throws RepositoryException {
         if (nodeService.exists(session, path)) {
-            throw new WebApplicationException(conflict().entity(path + " is an existing resource!").build());
+            throw new WebApplicationException(status(CONFLICT).entity(path + " is an existing resource!").build());
         }
     }
 
     private void assertPathExists(final String path) throws RepositoryException {
         if (!nodeService.exists(session, path)) {
-            throw new WebApplicationException(notFound().build());
+            throw new WebApplicationException(status(NOT_FOUND).build());
         }
     }
 
@@ -879,7 +879,7 @@ public class FedoraNodes extends AbstractResource {
         if (tokens.length == 2 && tokens[0].equalsIgnoreCase("jcr")) {
             final String requestPath = uriInfo.getPath();
             LOGGER.trace("{} request with jcr namespace is not allowed: {} ", msg, requestPath);
-            throw new WebApplicationException(notFound().build());
+            throw new WebApplicationException(status(NOT_FOUND).build());
         }
     }
 

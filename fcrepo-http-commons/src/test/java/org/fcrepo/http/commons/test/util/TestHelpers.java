@@ -17,9 +17,9 @@ package org.fcrepo.http.commons.test.util;
 
 import static com.hp.hpl.jena.rdf.model.ModelFactory.createDefaultModel;
 import static java.net.URI.create;
-import static org.junit.Assert.assertNotNull;
 import static org.apache.jena.riot.RDFLanguages.contentTypeToLang;
 import static org.fcrepo.kernel.utils.ContentDigest.asURI;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,6 +59,7 @@ import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraObject;
 import org.fcrepo.kernel.impl.identifiers.UUIDPidMinter;
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.modeshape.jcr.api.NamespaceRegistry;
@@ -68,7 +69,6 @@ import org.modeshape.jcr.api.query.QueryManager;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.update.GraphStore;
 import com.hp.hpl.jena.update.GraphStoreFactory;
-import com.sun.jersey.api.uri.UriBuilderImpl;
 
 /**
  * <p>Abstract TestHelpers class.</p>
@@ -91,7 +91,7 @@ public abstract class TestHelpers {
             public UriBuilder
                     answer(final InvocationOnMock invocation) throws Throwable {
 
-                final UriBuilder ub = new UriBuilderImpl();
+                final UriBuilder ub = new JerseyUriBuilder();
                 ub.scheme("http");
                 ub.host("localhost");
                 ub.path("/fcrepo");

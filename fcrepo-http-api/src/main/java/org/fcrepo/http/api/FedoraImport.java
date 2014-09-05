@@ -16,8 +16,8 @@
 package org.fcrepo.http.api;
 
 import static javax.ws.rs.core.Response.created;
-import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.status;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
@@ -26,9 +26,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.jcr.ItemExistsException;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -40,7 +40,7 @@ import javax.ws.rs.core.Response;
 import org.fcrepo.http.commons.AbstractResource;
 import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
 import org.fcrepo.http.commons.domain.ContentLocation;
-import org.fcrepo.http.commons.session.InjectedSession;
+import org.fcrepo.http.commons.session.InjectableSession;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
 import org.fcrepo.serialization.SerializerUtil;
 import org.slf4j.Logger;
@@ -59,8 +59,8 @@ import org.springframework.stereotype.Component;
 @Path("/{path: .*}/fcr:import")
 public class FedoraImport extends AbstractResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     @Autowired
     protected SerializerUtil serializers;

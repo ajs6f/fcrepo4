@@ -15,25 +15,32 @@
  */
 package org.fcrepo.http.api;
 
-import com.codahale.metrics.annotation.Timed;
-import org.fcrepo.http.commons.domain.PATCH;
-import org.fcrepo.http.api.versioning.VersionAwareHttpIdentifierTranslator;
-import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.responses.HtmlTemplate;
-import org.fcrepo.http.commons.session.InjectedSession;
-import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.Datastream;
-import org.fcrepo.kernel.FedoraResource;
-import org.fcrepo.kernel.impl.FedoraResourceImpl;
-import org.fcrepo.kernel.utils.iterators.RdfStream;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import static java.util.Collections.singleton;
+import static javax.ws.rs.core.MediaType.APPLICATION_XHTML_XML;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+import static javax.ws.rs.core.MediaType.TEXT_HTML;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
+import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.status;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.fcrepo.http.commons.domain.RDFMediaType.JSON_LD;
+import static org.fcrepo.http.commons.domain.RDFMediaType.N3;
+import static org.fcrepo.http.commons.domain.RDFMediaType.N3_ALT2;
+import static org.fcrepo.http.commons.domain.RDFMediaType.NTRIPLES;
+import static org.fcrepo.http.commons.domain.RDFMediaType.RDF_XML;
+import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE;
+import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE_X;
+import static org.fcrepo.jcr.FedoraJcrTypes.FCR_CONTENT;
+import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+
+import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.version.VersionException;
 import javax.servlet.http.HttpServletResponse;
@@ -50,28 +57,23 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 
-import static java.util.Collections.singleton;
-import static javax.ws.rs.core.MediaType.APPLICATION_XHTML_XML;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML;
-import static javax.ws.rs.core.MediaType.TEXT_HTML;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.noContent;
-import static javax.ws.rs.core.Response.status;
-import static org.fcrepo.http.commons.domain.RDFMediaType.JSON_LD;
-import static org.fcrepo.http.commons.domain.RDFMediaType.N3;
-import static org.fcrepo.http.commons.domain.RDFMediaType.N3_ALT2;
-import static org.fcrepo.http.commons.domain.RDFMediaType.NTRIPLES;
-import static org.fcrepo.http.commons.domain.RDFMediaType.RDF_XML;
-import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE;
-import static org.fcrepo.http.commons.domain.RDFMediaType.TURTLE_X;
-import static org.fcrepo.jcr.FedoraJcrTypes.FCR_CONTENT;
-import static org.slf4j.LoggerFactory.getLogger;
+import org.fcrepo.http.api.versioning.VersionAwareHttpIdentifierTranslator;
+import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
+import org.fcrepo.http.commons.domain.PATCH;
+import org.fcrepo.http.commons.responses.HtmlTemplate;
+import org.fcrepo.http.commons.session.InjectableSession;
+import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.Datastream;
+import org.fcrepo.kernel.FedoraResource;
+import org.fcrepo.kernel.impl.FedoraResourceImpl;
+import org.fcrepo.kernel.utils.iterators.RdfStream;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import com.codahale.metrics.annotation.Timed;
 
 /**
  * Endpoint for managing versions of nodes
@@ -83,8 +85,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Path("/{path: .*}/fcr:versions")
 public class FedoraVersions extends ContentExposingResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     @Autowired
     private SessionFactory sessionFactory = null;

@@ -15,7 +15,6 @@
  */
 package org.fcrepo.http.commons.domain;
 
-import com.sun.jersey.core.header.InBoundHeaders;
 import org.fcrepo.kernel.services.ExternalContentService;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -53,7 +55,7 @@ public class ContentLocationMessageBodyReaderTest {
 
     @Test
     public void testReadFromURI() throws Exception {
-        final InBoundHeaders headers = new InBoundHeaders();
+        final MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         headers.putSingle("Content-Location", "http://localhost:8080/xyz");
         when(mockContentService.retrieveExternalContent(new URI("http://localhost:8080/xyz")))
             .thenReturn(mockInputStream);
@@ -64,7 +66,7 @@ public class ContentLocationMessageBodyReaderTest {
     @Test
     public void testReadFromRequestBody() throws Exception {
 
-        final InBoundHeaders headers = new InBoundHeaders();
+        final MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         final InputStream actual = testObj.readFrom(InputStream.class, null, null, null, headers, mockInputStream);
         assertEquals(mockInputStream, actual);
 

@@ -37,15 +37,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.hp.hpl.jena.rdf.model.ResourceFactory;
-
 import org.fcrepo.kernel.identifiers.InternalIdentifierConverter;
 import org.fcrepo.kernel.impl.identifiers.NamespaceConverter;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.junit.Test;
 
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.sun.jersey.api.uri.UriBuilderImpl;
+import com.hp.hpl.jena.rdf.model.ResourceFactory;
 
 /**
  * <p>HttpIdentifierTranslatorTest class.</p>
@@ -224,13 +223,13 @@ public class HttpIdentifierTranslatorTest extends GraphSubjectsTest {
     protected static UriInfo getUriInfoImpl(final String path) {
         // UriInfo ui = mock(UriInfo.class,withSettings().verboseLogging());
         final UriInfo ui = mock(UriInfo.class);
-        final UriBuilder ub = new UriBuilderImpl();
+        final UriBuilder ub = new JerseyUriBuilder();
         ub.scheme("http");
         ub.host("localhost");
         ub.port(8080);
         ub.path("/fcrepo");
 
-        final UriBuilder rb = new UriBuilderImpl();
+        final UriBuilder rb = new JerseyUriBuilder();
         rb.scheme("http");
         rb.host("localhost");
         rb.port(8080);

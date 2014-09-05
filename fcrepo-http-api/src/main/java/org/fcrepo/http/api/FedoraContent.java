@@ -15,18 +15,21 @@
  */
 package org.fcrepo.http.api;
 
-import com.codahale.metrics.annotation.Timed;
-import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
-import org.fcrepo.http.commons.domain.ContentLocation;
-import org.fcrepo.http.commons.session.InjectedSession;
-import org.fcrepo.kernel.Datastream;
-import org.fcrepo.kernel.exception.InvalidChecksumException;
-import org.slf4j.Logger;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import static javax.ws.rs.core.Response.created;
+import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.status;
+import static org.apache.http.HttpStatus.SC_CONFLICT;
+import static org.slf4j.LoggerFactory.getLogger;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.util.List;
+
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -41,18 +44,17 @@ import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.ParseException;
-import java.util.List;
 
-import static javax.ws.rs.core.Response.created;
-import static javax.ws.rs.core.Response.noContent;
-import static javax.ws.rs.core.Response.status;
-import static org.apache.http.HttpStatus.SC_CONFLICT;
-import static org.slf4j.LoggerFactory.getLogger;
+import org.fcrepo.http.commons.api.rdf.HttpIdentifierTranslator;
+import org.fcrepo.http.commons.domain.ContentLocation;
+import org.fcrepo.http.commons.session.InjectableSession;
+import org.fcrepo.kernel.Datastream;
+import org.fcrepo.kernel.exception.InvalidChecksumException;
+import org.slf4j.Logger;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import com.codahale.metrics.annotation.Timed;
 
 /**
  * Content controller for adding, reading, and manipulating
@@ -66,8 +68,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Path("/{path: .*}/fcr:content")
 public class FedoraContent extends ContentExposingResource {
 
-    @InjectedSession
-    protected Session session;
+    @Inject
+    protected InjectableSession session;
 
     private static final Logger LOGGER = getLogger(FedoraContent.class);
 
