@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fcrepo.http.commons.api.rdf;
 
+package org.fcrepo.http.commons.api.rdf;
 
 import static com.hp.hpl.jena.rdf.model.ResourceFactory.createResource;
 import static java.util.Collections.singletonList;
+import static java.util.UUID.randomUUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -25,9 +26,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.URI;
-import java.util.UUID;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -42,28 +43,33 @@ import org.fcrepo.kernel.impl.identifiers.NamespaceConverter;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.junit.Test;
+import org.slf4j.Logger;
 
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
 
 /**
- * <p>HttpIdentifierTranslatorTest class.</p>
- *
+ * <p>
+ * HttpIdentifierTranslatorTest class.
+ * </p>
+ * 
  * @author ajs6f
  */
-public class HttpIdentifierTranslatorTest extends GraphSubjectsTest {
+public class HttpIdentifierTranslatorTest extends HttpIdentifierTranslatorTestScaffold {
+
+    private final static Logger log = getLogger(HttpIdentifierTranslatorTest.class);
 
     @Override
     protected HttpIdentifierTranslator getTestObj() {
         final HttpIdentifierTranslator testObj =
-            new HttpIdentifierTranslator(mockSession, MockNodeController.class, uriInfo);
+                new HttpIdentifierTranslator(mockSession, MockNodeController.class, uriInfo);
         testObj.setTranslationChain(singletonList((InternalIdentifierConverter) new NamespaceConverter()));
         return testObj;
     }
 
     protected HttpIdentifierTranslator getTestObjTx(final String path) {
         final HttpIdentifierTranslator testObj =
-            new HttpIdentifierTranslator(mockSessionTx, MockNodeController.class, getUriInfoImpl(path));
+                new HttpIdentifierTranslator(mockSessionTx, MockNodeController.class, getUriInfoImpl(path));
         testObj.setTranslationChain(singletonList((InternalIdentifierConverter) new NamespaceConverter()));
         return testObj;
     }
@@ -75,7 +81,7 @@ public class HttpIdentifierTranslatorTest extends GraphSubjectsTest {
 
     @Test
     public void testGetResourcURIBlank() {
-        assertNull( getTestObj().doRdfBackward(ResourceFactory.createResource()) );
+        assertNull(getTestObj().doRdfBackward(ResourceFactory.createResource()));
     }
 
     @Test
@@ -85,6 +91,8 @@ public class HttpIdentifierTranslatorTest extends GraphSubjectsTest {
 
     @Test
     public void testGetGraphSubject() throws RepositoryException {
+        final String testPath = "/testGetGraphSubject-" + randomUUID();
+        log.trace("Entering testGetGraphSubject()...");
         final String expected = "http://localhost:8080/fcrepo/rest" + testPath;
         when(mockNode.getPath()).thenReturn(testPath);
         when(mockWorkspace.getName()).thenReturn("default");
@@ -95,6 +103,7 @@ public class HttpIdentifierTranslatorTest extends GraphSubjectsTest {
         when(mockNode.getPath()).thenReturn(testPath + "/jcr:content");
         actual = testObj.getSubject(mockNode.getPath());
         assertEquals(expected + "/fcr:content", actual.getURI());
+        log.trace("Leaving testGetGraphSubject().");
     }
 
     @Test
@@ -156,7 +165,7 @@ public class HttpIdentifierTranslatorTest extends GraphSubjectsTest {
 
     @Test
     public void testIsFedoraGraphSubjectWithTx() throws RepositoryException {
-        final String txId = UUID.randomUUID().toString();
+        final String txId = "testIsFedoraGraphSubjectWithTx-" + randomUUID();
         final String testPathTx = "/" + txId + "/hello";
 
         when(mockSessionTx.getValueFactory()).thenReturn(mockValueFactory);
@@ -193,7 +202,7 @@ public class HttpIdentifierTranslatorTest extends GraphSubjectsTest {
 
     @Test
     public void testIsNotCanonicalWithinATx() {
-        final String txId = UUID.randomUUID().toString();
+        final String txId = "testIsNotCanonicalWithinATx" + randomUUID();
 
         final HttpIdentifierTranslator testObjTx = getTestObjTx("/");
         when(mockSessionTx.getTxId()).thenReturn(txId);
@@ -212,12 +221,15 @@ public class HttpIdentifierTranslatorTest extends GraphSubjectsTest {
 
     @Test
     public void testGetCanonicalWithinATx() throws RepositoryException {
-        final HttpIdentifierTranslator testObjTx = getTestObjTx("/");
+        log.trace("Entering testGetCanonicalWithinATx()...");
+        final String testPath = "/testGetCanonicalWithinATx-" + randomUUID();
         when(mockSessionTx.getTxId()).thenReturn("txid");
-        assertEquals("http://localhost:8080/fcrepo/rest/tx:txid/abc", testObjTx.getSubject("/abc").toString());
-        assertEquals("http://localhost:8080/fcrepo/rest/abc",
-                     testObjTx.getCanonical(true).getSubject("/abc").toString());
-
+        final HttpIdentifierTranslator testObjTx = getTestObjTx("/");
+        assertEquals("http://localhost:8080/fcrepo/rest/tx:txid" + testPath, testObjTx.getSubject(testPath)
+                .toString());
+        assertEquals("http://localhost:8080/fcrepo/rest" + testPath,
+                testObjTx.getCanonical(true).getSubject(testPath).toString());
+        log.trace("Leaving testGetCanonicalWithinATx().");
     }
 
     protected static UriInfo getUriInfoImpl(final String path) {

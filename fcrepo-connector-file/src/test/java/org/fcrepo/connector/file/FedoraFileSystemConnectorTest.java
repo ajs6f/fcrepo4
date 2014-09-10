@@ -40,11 +40,11 @@ import javax.jcr.RepositoryException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.createTempFile;
-import static org.fcrepo.http.commons.test.util.TestHelpers.setField;
 import static org.fcrepo.jcr.FedoraJcrTypes.CONTENT_DIGEST;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -263,5 +263,37 @@ public class FedoraFileSystemConnectorTest {
         doReturn(NT_FILE).when(reader).getPrimaryTypeName();
         spy.storeDocument(spy.getDocumentById(id));
         verify(spy).touchParent(id);
+    }
+
+    /**
+     * Set a field via reflection
+     *
+     * @param parent the owner object of the field
+     * @param name the name of the field
+     * @param obj the value to set
+     */
+    private static void setField(final Object parent, final String name, final Object obj) {
+        /* check the parent class too if the field could not be found */
+        try {
+            final Field f = findField(parent.getClass(), name);
+            f.setAccessible(true);
+            f.set(parent, obj);
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Field findField(final Class<?> clazz, final String name)
+            throws NoSuchFieldException {
+        for (final Field f : clazz.getDeclaredFields()) {
+            if (f.getName().equals(name)) {
+                return f;
+            }
+        }
+        if (clazz.getSuperclass() == null) {
+            throw new NoSuchFieldException("Field " + name +
+                                                   " could not be found");
+        }
+        return findField(clazz.getSuperclass(), name);
     }
 }

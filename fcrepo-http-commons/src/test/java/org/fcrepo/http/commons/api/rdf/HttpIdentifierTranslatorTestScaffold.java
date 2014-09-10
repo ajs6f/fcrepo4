@@ -41,7 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * @author Mike Durbin
  * @since 2014-02-21
  */
-public abstract class GraphSubjectsTest {
+public abstract class HttpIdentifierTranslatorTestScaffold {
 
     protected String testPath = "/foo/bar";
 
@@ -79,7 +79,6 @@ public abstract class GraphSubjectsTest {
         when(mockSession.getValueFactory()).thenReturn(mockValueFactory);
         when(mockSession.getRepository()).thenReturn(mockRepository);
         testObj = getTestObj();
-
     }
 
     /**

@@ -47,7 +47,7 @@
     <jsonld.version>0.5.0</jsonld.version>
     <!-- https://github.com/github/maven-plugins/blob/master/README.md -->
     <github.global.server>github</github.global.server>
-    <powermock.version>1.5.5</powermock.version>
+    <powermock.version>1.5.6</powermock.version>
     <guava.version>18.0</guava.version>
     <!-- plugin versions -->
     <checkstyle.plugin.version>2.12.1</checkstyle.plugin.version>

@@ -149,7 +149,7 @@
     <dependency>
       <groupId>javax.annotation</groupId>
       <artifactId>javax.annotation-api</artifactId>
-      <version>1.2-b04</version>
+      <version>1.2</version>
       <scope>test</scope>
     </dependency>
 
@@ -255,10 +255,16 @@
       <artifactId>jsonld-java-sesame</artifactId>
       <version>${jsonld.version}</version>
     </dependency>
-    <!-- new Jersey2 dependencies -->
+      <!-- new Jersey2 dependencies -->
     <dependency>
       <groupId>org.glassfish.jersey.ext</groupId>
       <artifactId>jersey-spring3</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.javassist</groupId>
+          <artifactId>javassist</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>

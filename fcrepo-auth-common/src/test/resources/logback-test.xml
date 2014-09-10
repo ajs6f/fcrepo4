@@ -7,6 +7,10 @@
         </encoder>
     </appender>
 
+  <logger name="org.glassfish" additivity="false" level="DEBUG">
+    <appender-ref ref="STDOUT"/>
+  </logger>
+
   <logger name="org.fcrepo.auth" additivity="false" level="${log.fcrepo.auth:-INFO}">
     <appender-ref ref="STDOUT"/>
   </logger>

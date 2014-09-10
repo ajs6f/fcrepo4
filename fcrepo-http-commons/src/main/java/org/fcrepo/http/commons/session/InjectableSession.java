@@ -16,10 +16,8 @@
 
 package org.fcrepo.http.commons.session;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import javax.jcr.Session;
 import javax.servlet.http.HttpServletRequest;
 
 import org.modeshape.jcr.JcrSession;

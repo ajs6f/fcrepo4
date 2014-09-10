@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.fcrepo.http.commons.api.rdf;
-
-import com.google.common.base.Function;
-import com.hp.hpl.jena.rdf.model.Resource;
-
-import org.fcrepo.kernel.exception.RepositoryRuntimeException;
-import org.fcrepo.kernel.identifiers.InternalIdentifierConverter;
-import org.fcrepo.kernel.impl.identifiers.NamespaceConverter;
-import org.fcrepo.kernel.impl.services.functions.GetDefaultWorkspace;
-import org.slf4j.Logger;
 
 import static com.google.common.base.Throwables.propagate;
 import static com.hp.hpl.jena.rdf.model.ResourceFactory.createResource;
@@ -51,6 +43,15 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.fcrepo.kernel.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.identifiers.InternalIdentifierConverter;
+import org.fcrepo.kernel.impl.identifiers.NamespaceConverter;
+import org.fcrepo.kernel.impl.services.functions.GetDefaultWorkspace;
+import org.slf4j.Logger;
+
+import com.google.common.base.Function;
+import com.hp.hpl.jena.rdf.model.Resource;
+
 /**
  * Translate JCR paths to URLs.  There are a few types of translations
  * that occur as part of this implementation:
@@ -68,7 +69,9 @@ import javax.ws.rs.core.UriInfo;
 public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTranslator {
 
     private static final Logger LOGGER = getLogger(HttpIdentifierTranslator.class);
+
     public static final String WORKSPACE_PREFIX = "workspace:";
+
     public static final String TX_PREFIX = "tx:";
 
     protected final UriBuilder uriBuilder;
@@ -84,16 +87,17 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
     private final String defaultWorkspace;
 
     private final Function<Repository, String> getDefaultWorkspace = new GetDefaultWorkspace();
+
     private final Class<?> relativeTo;
+
     private final UriInfo uris;
+
     private final boolean canonical;
 
     /**
-     * Build HTTP graph subjects relative to the given JAX-RS resource, using the UriInfo provided.
-     *
-     * The session may provide additional information (e.g. workspaces) that need to be
-     * taken into account.
-     *
+     * Build HTTP graph subjects relative to the given JAX-RS resource, using the UriInfo provided. The session may
+     * provide additional information (e.g. workspaces) that need to be taken into account.
+     * 
      * @param session
      * @param relativeTo
      * @param uris
@@ -103,20 +107,18 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
     }
 
     /**
-     * Build HTTP graph subjects relative to the given JAX-RS resource, using the UriInfo provided.
-     *
-     * The session may provide additional information (e.g. workspaces) that need to be
-     * taken into account.
-     *
+     * Build HTTP graph subjects relative to the given JAX-RS resource, using the UriInfo provided. The session may
+     * provide additional information (e.g. workspaces) that need to be taken into account.
+     * 
      * @param session
      * @param relativeTo
      * @param uris
      * @param canonical generate canonical URIs for resources
      */
     public HttpIdentifierTranslator(final Session session,
-                                    final Class<?> relativeTo,
-                                    final UriInfo uris,
-                                    final boolean canonical) {
+            final Class<?> relativeTo,
+            final UriInfo uris,
+            final boolean canonical) {
         this.session = session;
         this.relativeTo = relativeTo;
         this.uris = uris;
@@ -136,6 +138,7 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
 
     /**
      * Get the canonical IdentifierTranslator (e.g. one that ignores transactions and other transient states)
+     * 
      * @param canonical
      * @return the canonical IdentifierTranslator
      */
@@ -145,6 +148,7 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
 
     /**
      * Is the current IdentifierTranslator canonical?
+     * 
      * @return true if the current IdentifierTranslator is canonical
      */
     public boolean isCanonical() {
@@ -154,13 +158,9 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
     @Override
     public Resource getSubject(final String absPath) throws RepositoryException {
         resetTranslationChain();
-        try {
-            LOGGER.debug("Creating RDF subject from identifier: {}", decode(absPath, "UTF-8"));
-            return doForward(decode(absPath, "UTF-8"));
-        } catch ( UnsupportedEncodingException ex ) {
-            LOGGER.warn("Required encoding (UTF-8) not supported, trying undecoded path",ex);
-            return doForward(absPath);
-        }
+        final Resource resource = doForward(absPath);
+        LOGGER.debug("Created RDF subject {} from identifier: {}", resource, absPath);
+        return resource;
     }
 
     @Override
@@ -183,9 +183,8 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
     }
 
     /**
-     * Gets a path from the graph subject's URI.  This method does the heavy
-     * lifting for getNodeFromGraphSubject and getPathFromGraphSubject in a way
-     * that's tied to a more generic URI rather than a rdf Resource.
+     * Gets a path from the graph subject's URI. This method does the heavy lifting for getNodeFromGraphSubject and
+     * getPathFromGraphSubject in a way that's tied to a more generic URI rather than a rdf Resource.
      */
     protected String getPathFromGraphSubject(@NotNull final String subjectUri) throws RepositoryException {
 
@@ -273,7 +272,6 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
         String path = absPath.substring(1);
         if (session != null) {
             final Workspace workspace = session.getWorkspace();
-
             final String txId = getCurrentTransactionId(session);
 
             if (!canonical && txId != null) {
@@ -286,17 +284,26 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
         return singletonMap("path", path);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see org.fcrepo.kernel.identifiers.ExternalIdentifierConverter#doRdfForward(java.lang.String)
      */
     @Override
     protected Resource doRdfForward(final String inputId) {
-        final URI result = uriBuilder.buildFromMap(getPathMap(inputId));
-        return createResource(result.toString());
+        String result;
+        try {
+            result = decode(uriBuilder.buildFromMap(getPathMap(inputId)).toString(), "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            LOGGER.warn("Failed to decode to UTF-8, returning un-URLdecoded resource URI!");
+            result = uriBuilder.buildFromMap(getPathMap(inputId)).toString();
+        }
+        return createResource(result);
     }
 
-    /* (non-Javadoc)
-     * @see org.fcrepo.kernel.identifiers.ExternalIdentifierConverter#doRdfBackward(com.hp.hpl.jena.rdf.model.Resource)
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.fcrepo.kernel.identifiers.ExternalIdentifierConverter#doRdfBackward(com.hp.hpl.jena.rdf.model.Resource)
      */
     @Override
     protected String doRdfBackward(final Resource subject) {
@@ -311,7 +318,6 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
         }
     }
 
-
     protected void resetTranslationChain() {
         if (translationChain == null) {
             if (getTranslationChain() != null) {
@@ -323,7 +329,7 @@ public class HttpIdentifierTranslator extends SpringContextAwareIdentifierTransl
     }
 
     private static final List<InternalIdentifierConverter> minimalTranslationChain =
-        singletonList((InternalIdentifierConverter) new NamespaceConverter());
+            singletonList((InternalIdentifierConverter) new NamespaceConverter());
 
     @Override
     public String getBaseUri() {

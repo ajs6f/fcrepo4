@@ -50,12 +50,9 @@ public class InjectableSessionTest {
         final HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
         when(mockSessionFactory.getSession(mockHttpServletRequest)).thenReturn(mockSession);
         testObj = new InjectableSession(mockSessionFactory, mockHttpServletRequest);
-
     }
-    
+
     @Test
     public void testSomething() {
-        
     }
-
 }

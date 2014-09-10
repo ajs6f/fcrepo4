@@ -173,8 +173,10 @@ public class TransactionServiceImpl extends AbstractService implements Transacti
     public static String getCurrentTransactionId(final Session session) {
         try {
             if (session instanceof TxSession) {
+                LOGGER.trace("Found a transactional session, returning transaction ID from TxSession");
                 return ((TxSession) session).getTxId();
             }
+            LOGGER.trace("Not a transactional session, returning namespace URI from session");
             return session.getNamespaceURI(FCREPO4_TX_ID);
         } catch (final RepositoryException e) {
             LOGGER.trace("Unable to retrieve current transaction ID from session", e);
