@@ -17,11 +17,14 @@ package org.fcrepo.http.commons.exceptionhandlers;
 
 import static javax.ws.rs.core.Response.status;
 import static javax.ws.rs.core.Response.Status.GONE;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import org.fcrepo.kernel.exception.TransactionMissingException;
+import org.slf4j.Logger;
 
 /**
  * If a transaction is requested that has been closed (or never existed), just
@@ -30,11 +33,20 @@ import org.fcrepo.kernel.exception.TransactionMissingException;
  * @author awoods
  */
 @Provider
-public class TransactionMissingExceptionMapper implements
-        ExceptionMapper<TransactionMissingException> {
+public class TransactionMissingExceptionMapper implements ExceptionMapper<TransactionMissingException> {
+
+    private static final Logger log = getLogger(TransactionMissingExceptionMapper.class);
+
+    /**
+     * Default constructor.
+     */
+    public TransactionMissingExceptionMapper() {
+        log.debug("Initialized a TransactionMissingExceptionMapper.");
+    }
 
     @Override
     public Response toResponse(final TransactionMissingException exception) {
+        log.debug("Mapping a TransactionMissingException to an HTTP 410 GONE response");
         return status(GONE).build();
     }
 }

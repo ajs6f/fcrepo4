@@ -16,7 +16,6 @@
 package org.fcrepo.http.commons.session;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static javax.ws.rs.core.Response.Status.GONE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.security.Principal;
@@ -27,11 +26,9 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
 
-import org.fcrepo.kernel.exception.RepositoryRuntimeException;
-import org.fcrepo.kernel.exception.TransactionMissingException;
 import org.fcrepo.kernel.Transaction;
+import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.services.TransactionService;
 import org.modeshape.jcr.api.ServletCredentials;
 import org.slf4j.Logger;
@@ -128,8 +125,6 @@ public class SessionFactory {
             } else {
                 session = getSessionFromTransaction(servletRequest, txId);
             }
-        } catch (final TransactionMissingException e) {
-            throw new ClientErrorException(GONE, e);
         } catch (final RepositoryException e) {
             throw new BadRequestException(e);
         }
@@ -159,10 +154,8 @@ public class SessionFactory {
      *
      * @param servletRequest
      * @return a JCR session that is associated with the transaction
-     * @throws RepositoryException if the session could not be found for the given tx
      */
-    protected Session getSessionFromTransaction(final HttpServletRequest servletRequest, final String txId)
-        throws RepositoryException {
+    protected Session getSessionFromTransaction(final HttpServletRequest servletRequest, final String txId) {
 
         final Principal userPrincipal = servletRequest.getUserPrincipal();
 

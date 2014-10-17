@@ -19,43 +19,38 @@ import static com.google.common.base.Throwables.getStackTraceAsString;
 import static javax.ws.rs.core.Response.serverError;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import javax.jcr.RepositoryException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
+import org.glassfish.hk2.api.MultiException;
 import org.slf4j.Logger;
 
+
 /**
- * Catch all the exceptions!
+ * Handles Jersey 2's weird and unpleasant {@link MultiException}.
  *
- * @author lsitu
- * @author awoods
- * @author cbeer
- * @author fasseg
+ * @author ajs6f
+ *
  */
 @Provider
-public class WildcardExceptionMapper extends StackTraceEmittingExceptionMapper<Exception> {
+public class MultiExceptionMapper extends StackTraceEmittingExceptionMapper<MultiException> {
 
-    private static final Logger LOGGER = getLogger(WildcardExceptionMapper.class);
-
-    @Override
-    public boolean isMappable(Exception e) {
-        // all RepositoryRuntimeExceptions should have their own specific exceptionmappers
-        return !(e instanceof RepositoryRuntimeException);
-    }
+    private static final Logger log = getLogger(MultiExceptionMapper.class);
 
     @Override
-    public Response toResponse(final Exception e) {
-
-        if (e.getCause() instanceof RepositoryException) {
-            return new RepositoryExceptionMapper()
-                    .toResponse((RepositoryException)e.getCause());
+    public boolean isMappable(MultiException e) {
+        log.trace("Received MultiException {}", e);
+        final Throwable underlyingException = e.getCause();
+        if(underlyingException instanceof RepositoryRuntimeException) {
+            log.trace("Rethrowing RepositoryRuntimeException {}", underlyingException);
+            throw (RepositoryRuntimeException) underlyingException;
         }
-
-        LOGGER.info("Exception handled by WildcardExceptionMapper: \n", e);
-        return serverError().entity(
-                showStackTrace ? getStackTraceAsString(e) : null).build();
+        return false;
     }
 
+    @Override
+    public Response toResponse(final MultiException e) {
+        return serverError().entity(showStackTrace ? getStackTraceAsString(e) : null).build();
+    }
 }

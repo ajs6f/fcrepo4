@@ -32,7 +32,7 @@ import org.junit.Test;
  */
 public class WildcardExceptionMapperTest {
 
-    private WildcardExceptionMapper testObj;
+    private StackTraceEmittingExceptionMapper<Exception> testObj;
 
     @Before
     public void setUp() {
